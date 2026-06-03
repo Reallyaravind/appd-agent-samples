@@ -1,0 +1,7 @@
+FROM python
+
+RUN pip install opentelemetry-distro opentelemetry-exporter-otlp flask && opentelemetry-bootstrap -a install
+COPY main.py /app/main.py
+ENV OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otelcol-collector:4317
+EXPOSE 8080
+CMD ["sleep","12h"]

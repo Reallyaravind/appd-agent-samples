@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mypython-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mypython-app
+  template:
+    metadata:
+      labels:
+        app: mypython-app
+    spec:
+      initContainers:
+      - name: appd-python-init
+        command:
+        - cp
+        - -r
+        - /opt/appdynamics/.
+        - /opt/temp
+        image: docker.io/appdynamics/python-agent-init:1.0
+        imagePullPolicy: Always
+        volumeMounts:
+        - mountPath: /opt/temp
+          name: appd-python-init
+      containers:
+        - name: mypython-app
+          image: init-python-app
+          imagePullPolicy: Never
+          command: ["/bin/sh"]
+          args: ["-c", "/opt/appdynamics-python/run-with-agent.sh"]
+          ports:
+            - containerPort: 8080
+          envFrom:
+          - configMapRef:
+            name: appd-python-config
+          env:
+          - name: APPDYNAMICS_TCP_COMM_PORT
+            value: "9091"
+          - name: APP_ENTRY_POINT
+            value: "--use-manual-proxy python3 /app/app.py"
+          - name: APPDYNAMICS_AGENT_VERSION
+            value: 25.10.0.8329 #Use Latest Agent
+          - name: APPDYNAMICS_AGENT_TIER_NAME
+            value: <value>
+          - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: appd-agent-secret
+                key: access-key
+        - name: proxy
+          image: appdynamics/dl-proxy:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9091
+              protocol: TCP
+          env:
+            - name: APPDYNAMICS_DEBUG_LOG
+              value: "on"
+            - name: APPDYNAMICS_LOGGING_LEVEL
+              value: "debug"
+            - name: APPDYNAMICS_TCP_COMM_HOST
+              value: "0.0.0.0"
+            - name: APPDYNAMICS_TCP_COMM_PORT
+              value: "9091"
+            - name: APPDYNAMICS_TCP_PORT_RANGE
+              value: "10000-10100"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 900Mi
+            requests:
+              cpu: 400m
+              memory: 600Mi
+
+      volumes:
+        - name: appd-python-init
+          emptyDir: {}
+      restartPolicy: Always

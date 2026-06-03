@@ -1,0 +1,23 @@
+version: "1"
+services:
+  otelcol-collector:
+    image: otel/opentelemetry-collector
+    command: ["--config=/etc/otel-config.yaml"]
+    volumes:
+      - ./otel-config.yaml:/etc/otel-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    container_name: otelcol-collector
+
+  app: 
+    build: .
+    working_dir: /app
+    command: ["opentelemetry-instrument", "python3", "main.py"]
+    ports: 
+      - "8080:8080"
+    container_name: app
+    depends_on: 
+      - otelcol-collector
+    links: 
+      - otelcol-collector

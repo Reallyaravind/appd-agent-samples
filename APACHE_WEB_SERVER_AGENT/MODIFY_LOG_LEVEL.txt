@@ -1,0 +1,41 @@
+To enable Trace level log for the apache agent,
+    Go to the appdynamics_sdk_log4cxx configuration file for the apache agent, which is located at ->
+        /opt/appdynamics-sdk-native/conf/appdynamics_sdk_log4cxx.xml
+
+        Change/Update the configuration to the following,
+            <logger name="api" additivity="false">
+                <level value="trace"/>
+                <appender-ref ref="api"/>
+            </logger>
+
+            <logger name="api_user" additivity="false">
+                <level value="trace"/>
+                <appender-ref ref="api_user"/>
+            </logger>
+
+            <root>
+                <priority value="trace" />
+                <appender-ref ref="main"/>
+            </root>
+
+And for the proxy,
+    Go to the proxyCtrlLog4j2 configuration file for the proxy, which is located at ->
+        /opt/appdynamics-sdk-native/proxy/conf/logging/proxyCtrlLog4j2.xml
+
+    Change/Update the configuration to the following,
+        <Loggers>
+            <AsyncLogger name="com.singularity.proxyControl" level="trace" additivity="false">
+                <AppenderRef ref="ProxyLogger"/>
+                <AppenderRef ref="Console"/>
+            </AsyncLogger>
+            <Root level="trace">
+                <AppenderRef ref="ProxyLogger"/>
+                <AppenderRef ref="Console"/>
+            </Root>
+        </Loggers> 
+
+Finally, Go to 
+    nano /usr/local/apache2/conf/appdynamics_agent.conf
+
+    and add the following -> 
+        AppDynamicsTraceAsError ON

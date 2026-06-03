@@ -1,0 +1,72 @@
+apiVersion: cluster.appdynamics.com/v1alpha1
+kind: Clusteragent
+metadata:
+  name: k8s-cluster-agent
+  namespace: appdynamics
+spec:
+  appName: "cluster_agent_latest"
+  controllerUrl: "<VALUE>"
+  account: "<VALUE>"
+  # docker image info
+  image: "docker.io/appdynamics/cluster-agent:26.2.0-1710"
+  serviceAccountName: appdynamics-cluster-agent
+  ### Uncomment the following line if you need pull secret
+  #imagePullSecret: "<your-docker-pull-secret-name>"
+# === AppD CA | Optional agent settings
+  nsToInstrument:
+    - "default"
+    - "appdynamics"
+    - "kube-system"  
+    - "dev"
+    - "test"
+  eventUploadInterval: 10
+  containerRegistrationInterval: 120
+  httpClientTimeout: 30
+#  customSSLSecret: "<secret-name>"
+#  proxyUrl: "<protocol>://<domain>:<port>"
+#  proxyUser: "<proxy-user>"
+  metricsSyncInterval: 30
+  clusterMetricsSyncInterval: 60
+  metadataSyncInterval: 60
+  containerBatchSize: 25
+  podBatchSize: 30
+  metricUploadRetryCount: 3
+  metricUploadRetryIntervalMilliSeconds: 5
+#  podFilter:
+#    blocklistedLabels:
+#      - label1: value1
+#      allowlistedLabels:
+#     #   - label1: value1
+#     #   - label2: value2
+#     # allowlistedNames:
+#     #   - name1
+#     # blocklistedNames:
+#     #   - name2
+  logLevel: "TRACE"
+  logFileSizeMb: 5
+  logFileBackups: 3
+  stdoutLogging: "true"
+  resources:
+    limits:
+      cpu: 300m
+      memory: "200Mi"
+    requests:
+      cpu: 200m
+      memory: "100Mi"
+# === AppD CA | auto-instrumentation-specific settings:
+  instrumentationMethod: Env
+  nsToInstrumentRegex: dev|test
+  appNameStrategy: manual
+  defaultAppName: nodejs-auto-ins
+  tierNameStrategy: manual
+  instrumentationRules:
+    - matchString: nodejs-auto-ins
+      appName: nodejs-auto-ins
+      tierName: <VALUE>
+      language: nodejs
+      customAgentConfigSource:
+        - configMapName: shim-js-config
+      imageInfo:
+        agentMountPath: /opt/appdynamics
+        image: docker.io/appdynamics/nodejs-agent:25.12.0-22-alma
+        imagePullPolicy: Always  

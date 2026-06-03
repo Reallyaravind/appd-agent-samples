@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejs-app
+  template:
+    metadata:
+      labels:
+        app: nodejs-app
+    spec:
+      containers:
+      - name: nodejs-app
+        image: nodejs-app:latest
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: appd-agent
+          mountPath: /opt/appdynamics
+        envFrom:
+        - configMapRef:
+            name: appd-nodejs-config
+        env:
+        - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: appd-agent-secret
+              key: access-key
+        - name: APPDYNAMICS_AGENT_TIER_NAME
+          value: nodejs-service
+        command: ["/bin/sh"]
+        args:
+          - "-c"
+          - |
+            export UNIQUE_HOST_ID=$(sed -rn '1s#.*/##; 1s/(.{12}).*/\1/p' /proc/self/cgroup)
+            npm start
+      initContainers:
+      - name: appd-agent-attach
+        image: appd-nodejs-agent:latest
+        imagePullPolicy: IfNotPresent
+        command: ["cp", "-ra", "/opt/appdynamics/.", "/opt/temp"]
+        volumeMounts:
+        - name: appd-agent
+          mountPath: /opt/temp
+      volumes:
+      - name: appd-agent
+        emptyDir: {}

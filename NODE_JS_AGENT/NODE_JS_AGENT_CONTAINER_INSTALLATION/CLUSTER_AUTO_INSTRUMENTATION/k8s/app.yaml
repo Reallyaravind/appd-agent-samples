@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-auto-ins
+  namespace: dev
+spec:
+  selector:
+    matchLabels:
+      name: nodejs-auto-ins
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: nodejs-auto-ins
+    spec:
+      containers:
+      - name: nodejs-auto-ins 
+        image: nodejs-auto-app:latest
+        imagePullPolicy: Never        
+        ports:
+        - containerPort: 3000 
+        env:
+          - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: access-key
+                name: appd-agent-secret
+        envFrom:
+          - configMapRef:
+              name: appd-nodejs-config  
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-auto-ins
+  namespace: dev   # always good to specify
+spec:
+  selector:
+    name: nodejs-auto-ins      # matches pod label
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000

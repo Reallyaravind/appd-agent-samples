@@ -1,0 +1,79 @@
+Step 1 - Install Apache2 in your server
+
+Step 2 - Download the AppDynamics-compatible Apache agent package and place it to your server
+
+Step 3 - move the tar file and extract the file
+
+    tar -xzvf appdynamics-sdk-native-nativeWebServer_* -C /opt
+
+Step 4 - Give apache read write permission to the logs dir
+
+    /opt/appdynamics-sdk-native/logs
+
+Step 5 - Set LD_LIBRARY_PATH
+
+    export LD_LIBRARY_PATH=/opt/appdynamics-sdk-native/sdk_lib/lib
+
+Step 6 - Install the agent
+
+    chown -R apache:apache /opt/appdynamics-sdk-native/logs
+    ** OR **
+    chown -R www-data:www-data /opt/appdynamics-sdk-native/logs
+
+Step 7 - Configure the Agent -
+
+    nano /etc/httpd/conf/appdynamics_agent.conf [OR] nano /etc/apache2/conf/appdynamics.conf
+
+    Paste the following
+
+        # Load required SDK libraries
+        LoadFile /opt/appdynamics-sdk-native/sdk_lib/lib/libzmq.so.5
+        LoadFile /opt/appdynamics-sdk-native/sdk_lib/lib/libappdynamics_native_sdk.so
+
+        # Load the AppDynamics Apache Agent module
+        LoadModule appdynamics_module /opt/appdynamics-sdk-native/WebServerAgent/Apache/libmod_appdynamics.so
+
+        # Enable monitoring
+        AppDynamicsEnabled ON
+
+        #Cisco AppDynamics Controller connection.
+        AppDynamicsControllerHost <Value>
+        AppDynamicsControllerPort <Value>
+        AppDynamicsControllerSSL <Value>
+
+        #Account credentials
+        AppDynamicsAccountName <Value>
+        AppDynamicsAccessKey <Value>
+
+        #Configure Controller connection through an HTTP proxy server.
+        #AppDynamicsProxyHost <proxy host>
+        #AppDynamicsProxyPort <proxy port>
+
+        #Business application, tier, node
+        AppDynamicsApplication <Value>
+        AppDynamicsTier <Value>
+        AppDynamicsNode <Value>
+
+        AppDynamicsLaunchProxy ON #For auto instrumentation of AppD.
+
+Step 8 - Add Conf file to the httpd.conf:
+
+    nano /etc/httpd/conf/httpd.conf [OR] nano /etc/apache2/apache2.conf
+
+    # Make sure to include the AppDynamics configuration at the end of the httpd.conf file
+    
+    #Include Cisco AppDynamics Apache Agent Configuration
+    Include conf/appdynamics_agent.conf
+
+Step 13 - Restart Apache
+
+    systemctl restart httpd [OR] systemctl restart apache2
+
+Step 14 - Check Logs & proxy
+
+    Check if Proxy is running -> ps -aef | grep proxy
+
+    Check Appdynamics Logs -> cd /opt/appdynamics-sdk-native/logs -> You Should find ->
+        api.log       proxyCore.________.log     nodename  
+        api_user.log  proxy.out     sdk.log      appd-sdk      
+      

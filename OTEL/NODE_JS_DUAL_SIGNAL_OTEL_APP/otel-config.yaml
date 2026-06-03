@@ -1,0 +1,37 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: 
+      http:
+processors:
+  resource:
+    attributes:
+    - key: appdynamics.controller.account
+      action: upsert
+      value: "<VALUE>"
+    - key: appdynamics.controller.host
+      action: upsert
+      value: "<VALUE>"
+    - key: appdynamics.controller.port
+      action: upsert
+      value: <VALUE>
+    - key: service.name
+      value: <VALUE>
+      action: upsert
+    - key: service.namespace
+      value: <VALUE>
+      action: upsert
+  batch:
+    timeout: 30s
+    send_batch_size: 90
+
+exporters:
+  otlphttp:
+    endpoint: "<VALUE>"
+    headers: {"x-api-key": "<VALUE>"}
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [otlphttp]

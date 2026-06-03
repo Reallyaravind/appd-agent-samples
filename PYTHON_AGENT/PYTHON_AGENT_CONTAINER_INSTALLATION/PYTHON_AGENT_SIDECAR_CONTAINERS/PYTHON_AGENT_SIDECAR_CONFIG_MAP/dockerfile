@@ -1,0 +1,17 @@
+FROM python:3.9
+
+
+# Copy Flask app
+COPY app/ /app/
+WORKDIR /app
+
+# Set permissions and expose port
+RUN chmod +x ./app.py
+EXPOSE 8080
+
+# Install dependencies and AppDynamics agent
+RUN pip install -U pip setuptools && \
+    pip install -U appdynamics -r requirements.txt
+
+# Start app with manual proxy option
+CMD pyagent run --use-manual-proxy python ./app.py

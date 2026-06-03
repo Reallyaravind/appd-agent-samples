@@ -1,0 +1,10 @@
+FROM node:22
+
+WORKDIR /opt/appdynamics
+
+# Copy app source code
+COPY shim.js .
+RUN npm install appdynamics@next
+
+# Start your Node.js app (adjust as necessary)
+CMD ["echo", " this is a init container"]

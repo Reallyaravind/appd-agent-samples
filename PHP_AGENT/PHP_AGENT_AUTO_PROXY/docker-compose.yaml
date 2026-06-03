@@ -1,0 +1,30 @@
+services:
+  web:
+    build:
+      context: app
+      target: builder
+    ports: 
+      - '8080:80'
+    command: /bin/sh /opt/appdynamics/run-with-appd-php-agent.sh
+    environment:
+      APPDYNAMICS_CONTROLLER_HOST_NAME: "<VALUE>"
+      APPDYNAMICS_CONTROLLER_PORT: "<VALUE>"
+      APPDYNAMICS_CONTROLLER_SSL_ENABLED: "<VALUE>"
+      APPDYNAMICS_AGENT_ACCOUNT_NAME: "<VALUE>"
+      APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY: "<VALUE>"
+      APPDYNAMICS_AGENT_APPLICATION_NAME: "<VALUE>"
+      APPDYNAMICS_AGENT_TIER_NAME: "<VALUE>"
+      APPDYNAMICS_AGENT_NODE_NAME: "<VALUE>"
+      APPDYNAMICS_AGENT_NODE_REUSE: "true"
+      APPDYNAMICS_AGENT_PROXY_AUTO_LAUNCH: "1"
+      APPDYNAMICS_PHP_INI_LOCATION: "/usr/local/etc/php/conf.d" # /usr/local/etc/php/conf.d/appdynamics_agent.ini
+      APP_ENTRY_POINT: "apache2-foreground"
+    volumes:
+      - ./app:/var/www/html/
+      - ./appdynamics-php-agent-linux_x64:/opt/appdynamics/php-agent
+      - ./run-with-appd-php-agent.sh:/opt/appdynamics/run-with-appd-php-agent.sh
+    networks:
+      - webapp
+
+networks:
+  webapp:
