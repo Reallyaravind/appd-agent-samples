@@ -1,6 +1,6 @@
-# AppDynamics Unified Agent Repository
+# AppDynamics Agent Samples Repository
 
-![test](Header.png)
+![test](new-header.png)
 
 This repository serves as a centralized collection of **AppDynamics APM agent instrumentation** examples. Each folder contains a lightweight sample application that showcases different instrumentation techniques and use cases across various AppDynamics agents.
 
