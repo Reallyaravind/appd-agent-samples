@@ -1,0 +1,88 @@
+provider "aws" {
+  region     = "ap-southeast-2"
+  access_key = "<VALUE>"
+  secret_key = "<VALUE>"
+}
+
+# 1. Null Resource to automatically package the AppDynamics Tracer dependency
+resource "null_resource" "pip_install_tracer" {
+  # Triggers a re-run if the handler file changes
+  triggers = {
+    handler_hash = filemd5("${path.module}/app/app.py")
+  }
+
+  provisioner "local-exec" {
+    command = "pip3 install --target ${path.module}/app/ appdynamics-lambda-tracer"
+  }
+}
+
+# 2. Archive the Python application source code (waits for the pip install to complete)
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/app"
+  output_path = "${path.module}/app.zip"
+
+  depends_on = [null_resource.pip_install_tracer]
+}
+
+locals {
+  aws_region         = "ap-southeast-2"
+  appd_extension_ver = "30"
+  appd_api_endpoints = {
+    "us-west-2"      = "https://pdx-sls-agent-api.saas.appdynamics.com"
+    "eu-central-1"   = "https://fra-sls-agent-api.saas.appdynamics.com"
+    "ap-southeast-2" = "https://syd-sls-agent-api.saas.appdynamics.com"
+  }
+}
+
+# 2. IAM Role for Lambda
+resource "aws_iam_role" "lambda_role" {
+  name = "appdynamics_lambda_execution_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = { Service = "lambda.amazonaws.com" }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+# 3. AWS Lambda Function Configuration
+resource "aws_lambda_function" "python_app" {
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+
+  function_name = "APPD_LAMBDA_TRACER"
+  role          = aws_iam_role.lambda_role.arn
+  
+  runtime       = "python3.12"
+  handler       = "app.lambda_handler"
+
+  layers = [
+    "arn:aws:lambda:${local.aws_region}:338050622354:layer:appdynamics-lambda-extension:${local.appd_extension_ver}"
+  ]
+
+  environment {
+    variables = {
+      APPDYNAMICS_ACCOUNT_NAME               = "<VALUE>"
+      APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY   = "<VALUE>" 
+      APPDYNAMICS_APPLICATION_LAMBDA_HANDLER = "app.lambda_handler"
+      APPDYNAMICS_APPLICATION_NAME           = "<VALUE>"
+      APPDYNAMICS_CONTROLLER_HOST            = "<VALUE>"
+      APPDYNAMICS_CONTROLLER_PORT            = "<VALUE>"
+      APPDYNAMICS_CONTROLLER_SSL_ENABLED     = "<VALUE>"
+      APPDYNAMICS_SERVERLESS_API_ENDPOINT    = local.appd_api_endpoints[local.aws_region]
+      APPDYNAMICS_TIER_NAME                  = "<VALUE>"
+      APPDYNAMICS_LOG_LEVEL                  = "INFO" // Accepted Values: "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
+    }
+  }
+}
