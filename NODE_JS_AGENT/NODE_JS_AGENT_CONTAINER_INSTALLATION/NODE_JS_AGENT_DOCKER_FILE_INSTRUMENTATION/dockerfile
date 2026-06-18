@@ -12,9 +12,8 @@ COPY package.json ./
 # Install application dependencies (excluding AppDynamics, as it's removed from package.json)
 RUN npm install
 
-# Copy the locally unzipped AppDynamics agent into node_modules
-# Ensure 'appdynamics-agent-local/appdynamics' matches the path to the actual module folder
-COPY /appdynamics ./node_modules/appdynamics
+# Install Appdynamics
+RUN npm install appdynamics@latest
 
 # Copy the rest of your application code
 COPY . .
