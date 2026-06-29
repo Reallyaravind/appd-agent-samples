@@ -8,7 +8,9 @@ Step 3 - move the tar file and extract the file
 
 Step 4 - Give apache read write permission to the logs dir
 
-    /opt/appdynamics-sdk-native/logs
+    chown -R apache:apache /opt/appdynamics-sdk-native/logs
+        ** OR **
+    chown -R www-data:www-data /opt/appdynamics-sdk-native/logs
 
 Step 5 - Set LD_LIBRARY_PATH
 
@@ -16,9 +18,7 @@ Step 5 - Set LD_LIBRARY_PATH
 
 Step 6 - Install the agent
 
-    chown -R apache:apache /opt/appdynamics-sdk-native/logs
-    ** OR **
-    chown -R www-data:www-data /opt/appdynamics-sdk-native/logs
+    /opt/appdynamics-sdk-native/install.sh
 
 Step 7 - Configure the Agent -
 
