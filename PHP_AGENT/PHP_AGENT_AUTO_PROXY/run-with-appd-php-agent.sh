@@ -1,13 +1,6 @@
 #!/bin/sh
 set -e
 
-# --- workaround: disable opcache if it breaks Apache start ---
-OPCACHE_INI="/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini"
-if [ -f "$OPCACHE_INI" ]; then
-  echo "[startup] disabling opcache (workaround): $OPCACHE_INI"
-  mv "$OPCACHE_INI" "${OPCACHE_INI}.disabled" || true
-fi
-
 # -------------------------
 # Build install.sh params
 # -------------------------

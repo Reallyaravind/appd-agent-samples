@@ -1,9 +1,9 @@
-# AppDynamics PHP Agent - Auto Proxy
+# AppDynamics PHP Agent - Manual Proxy
 
 ## Overview
-- Demonstrates how to instrument a PHP application running on Apache with the AppDynamics PHP Agent using **auto proxy** mode.
-- The agent automatically launches the Java proxy that communicates with the AppDynamics Controller and detects business transactions for PHP endpoints.
-- Packaged with **Docker Compose** so the PHP/Apache application and the AppDynamics agent run together in a single container.
+- Demonstrates how to instrument a PHP application running on Apache with the AppDynamics PHP Agent using **manual proxy** mode.
+- Auto-launch of the proxy is **disabled**; the startup script manually starts the Java proxy that communicates with the AppDynamics Controller and detects business transactions for PHP endpoints.
+- Packaged with **Docker Compose** so the PHP/Apache application and the AppDynamics agent (with its manually launched proxy) run together in a single container.
 
 > **Note:** This repository is intended for reference purposes. Agent configurations and requirements may evolve with new releases. Always verify steps against the [Official AppDynamics Documentation](https://help.splunk.com/en/appdynamics-saas) before proceeding.
 
@@ -20,9 +20,12 @@
 2. **app/index.php** - Simple PHP application with endpoints used to generate business transactions.
 3. **run-with-appd-php-agent.sh** - Startup script that:
    - Builds parameters for the agent `install.sh` based on environment variables (SSL, node reuse, php.ini location).
-   - Runs `install.sh` to install/configure the PHP agent with auto-launch proxy enabled.
-   - Execs `apache2-foreground` (from `APP_ENTRY_POINT`) as PID 1.
-4. **docker-compose.yaml** - Defines the `web` service, mounts the agent and startup script into the container, exposes port `8080`, and passes all AppDynamics configuration via environment variables.
+   - Runs `install.sh` with `--auto-launch-proxy=0` to install/configure the PHP agent **without** auto-launching the proxy.
+   - Appends manual proxy settings (`agent.auto_launch_proxy`, `agent.proxy_script`, `agent.proxy_ctrl_dir`) to `appdynamics_agent.ini`.
+   - Creates the proxy runtime and communication directories (`/tmp/proxy.communication`, `/tmp/agentLogs`).
+   - **Manually launches the proxy** (`proxy/runProxy`) in the background as the `PHP_APP_AGENT` type.
+   - Waits briefly for proxy initialization, then execs `apache2-foreground` (from `APP_ENTRY_POINT`) as PID 1.
+4. **docker-compose.yaml** - Defines the `web` service, mounts the agent and startup script into the container, exposes port `8080`, and passes all AppDynamics configuration via environment variables (with `APPDYNAMICS_AGENT_PROXY_AUTO_LAUNCH: "0"` to enable manual proxy mode).
 
 **Quick Start Guide:**
 
@@ -37,12 +40,12 @@
 
 - **Access the Application** - Open `http://localhost:8080/` in your browser to generate traffic.
 
-- **Verify Agent is Running** - Check the container logs and confirm the proxy/agent started:
+- **Verify Agent and Proxy are Running** - Check the container logs and confirm the manually launched proxy/agent started:
   ```bash
   docker compose logs -f web
-  docker compose exec web ps -aef | grep java
+  docker compose exec web ps -aef | grep appd
   ```
-  Then log into your AppDynamics Controller and confirm the application/tier/node appears under Applications with detected business transactions.
+  You should see the `runProxy` Java process running. Then log into your AppDynamics Controller and confirm the application/tier/node appears under Applications with detected business transactions.
 
 - **Enable Debug Logging** - Enable trace-level logging and collect logs for both the application (agent) and the proxy.
 
@@ -62,13 +65,10 @@
    docker compose restart web
    ```
 
-- **View Agent Logs** - Logs are available inside the container at:
+- **View Agent and Proxy Logs** - Agent logs are available inside the container at:
   ```
   /opt/appdynamics/php-agent/logs/
-  ```
-  Tail them with:
-  ```bash
-  docker compose exec web tail -f /opt/appdynamics/php-agent/logs/agent.log
+  /tmp/agentLogs/
   ```
 
 ## Official Documentation
@@ -76,6 +76,7 @@
 - [Install the PHP Agent](https://help.splunk.com/en/appdynamics-saas/application-performance-monitoring/26.4.0/install-app-server-agents/php-agent/install-the-php-agent)
 - [PHP Agent Configuration Properties](https://help.splunk.com/en/appdynamics-saas/application-performance-monitoring/26.4.0/install-app-server-agents/php-agent/php-agent-configuration-settings)
 - [PHP Supported Environments](https://help.splunk.com/en/appdynamics-saas/application-performance-monitoring/26.4.0/install-app-server-agents/php-agent/php-supported-environments)
+- [Start the PHP Agent Proxy Manually](https://help.splunk.com/en/appdynamics-saas/application-performance-monitoring/26.6.0/install-app-server-agents/php-agent/install-the-php-agent/start-the-php-agent-proxy-manually)
 
 ## Support
 
