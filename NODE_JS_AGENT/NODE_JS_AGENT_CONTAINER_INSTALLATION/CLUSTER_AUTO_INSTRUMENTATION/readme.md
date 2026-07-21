@@ -9,7 +9,7 @@
 
 ## Prerequisites
 
-- Kubernetes cluster running (this setup uses **minikube**)
+- Kubernetes cluster running
 - Docker installed for building container images
 - AppDynamics Cluster Agent operator file downloaded from the AppDynamics Downloads portal (placed as `cluster-agent-operator.yaml`)
 

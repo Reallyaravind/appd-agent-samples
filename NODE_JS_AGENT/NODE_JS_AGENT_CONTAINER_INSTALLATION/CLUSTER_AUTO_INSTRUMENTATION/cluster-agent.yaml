@@ -64,8 +64,6 @@ spec:
       appName: nodejs-auto-ins
       tierName: <VALUE>
       language: nodejs
-      customAgentConfigSource:
-        - configMapName: shim-js-config
       imageInfo:
         agentMountPath: /opt/appdynamics
         image: docker.io/appdynamics/nodejs-agent:25.12.0-22-alma
