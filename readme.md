@@ -13,7 +13,6 @@ The structure of this repository aligns with the latest [**AppDynamics official 
 
 ## 🛠 Contribution Guidelines
 
-// ...existing code...
 We welcome contributions! To maintain consistency across the repository, please ensure your pull requests follow the standardized template format outlined below:
 
 For detailed guidelines, please refer to the [Contribution Guide](contribute.md).
