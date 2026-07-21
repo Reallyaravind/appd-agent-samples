@@ -9,47 +9,43 @@
 
 ## Prerequisites
 
-- Kubernetes cluster running
+- Kubernetes cluster running (this setup uses **minikube**)
 - Docker installed for building container images
+- AppDynamics Cluster Agent operator file downloaded from the AppDynamics Downloads portal (placed as `cluster-agent-operator.yaml`)
 
 ## Installation Method / Code Explanation
 
 **Simple overview of the code:**
 
-1. **cluster-agent-operator.yaml** - Deploys the AppDynamics Operator and Cluster Agent infrastructure, including custom resource definitions (CRDs), service accounts, and RBAC roles
-2. **cluster-agent.yaml** - Defines the ClusterAgent resource that orchestrates automatic instrumentation for Node.js apps in specified namespaces
-3. **shim.js** - AppDynamics agent configuration file that initializes the Node.js agent with proxy host and port settings
-4. **Makefile** - Automation script that handles cluster setup, image loading, app deployment, and cleanup
-5. **node-js-app/Dockerfile** - Containerizes the Node.js application on port 3000
-6. **node-js-app/package.json** - Defines application dependencies (Express.js framework)
-7. **node-js-app/index.js** - Simple Express.js application with endpoints for testing
-8. **k8s/appd-nodejs-config.yaml** - ConfigMap storing AppDynamics controller configuration and agent settings
-9. **k8s/app.yaml** - Kubernetes Deployment and Service for the Node.js application
-10. **k8s/secret.yaml** - Kubernetes Secret for storing sensitive AppDynamics access key credentials
-11. **Commands** - Reference guide with step-by-step kubectl commands for manual deployment
+1. **cluster-agent-operator.yaml** - Deploys the AppDynamics Operator and Cluster Agent infrastructure, including custom resource definitions (CRDs), service accounts, and RBAC roles. Download this from the AppDynamics Downloads portal and place it in this directory.
+2. **cluster-agent.yaml** - Defines the `Clusteragent` resource that orchestrates automatic instrumentation for Node.js apps in specified namespaces, including instrumentation rules and the Node.js agent image to inject
+3. **Makefile** - Automation script that handles image loading, namespace creation, secret creation, cluster agent setup, app build, deployment, and cleanup
+4. **node-js-app/Dockerfile** - Containerizes the Node.js application on port 3000
+5. **node-js-app/package.json** - Defines application dependencies (Express.js framework)
+6. **node-js-app/index.js** - Simple Express.js application with endpoints for testing
+7. **k8s/app.yaml** - Kubernetes Deployment and Service for the Node.js application
 
 **Quick Start Guide:**
 
 - **Set Configuration Values** - Update the following files with your AppDynamics controller & application details:
-  - `cluster-agent.yaml`
-  - `k8s/appd-nodejs-config.yaml`
-  - `Makefile`
+  - `cluster-agent.yaml` — set `controllerUrl`, `account`, and the `tierName` under `instrumentationRules`
+  - `Makefile` — set `CONTROLLER_KEY` and `ACCESS_KEY`
 
-- **Run Automated Setup** - Execute `make all` to perform all setup steps (loads images, creates namespaces, deploys cluster agent, builds app, and deploys application)
+- **Run Automated Setup** - Execute `make all` to perform all setup steps (loads images, creates namespaces, creates secrets, deploys the cluster operator and cluster agent, builds the app image, and deploys the application)
 
-- **Verify Cluster Agent Deployment** - Run `make get-pods` to check if all pods are running in both `appdynamics` and `dev` namespaces
+- **Verify Cluster Agent Deployment** - Run `make get-pods` to check if all pods are running in both the `appdynamics` and `dev` namespaces
 
-- **Enable Debug Logging** - Set `logLevel: "TRACE"` in `cluster-agent.yaml` and `APPDYNAMICS_LOGGER_LEVEL: TRACE` in `k8s/appd-nodejs-config.yaml`
+- **Enable Debug Logging** - Set `logLevel: "TRACE"` in `cluster-agent.yaml` to capture detailed cluster agent and instrumentation logs
 
 - **View Agent Logs** - Check logs with `make logs` or `kubectl logs -f deployment/nodejs-app -n dev` to monitor agent initialization and application behavior
 
-- **Verify Agent is Running** - Open your browser and navigate to `http://localhost:3000/` (or the LoadBalancer IP) to generate traffic, then check the AppDynamics Controller UI to confirm the application appears with monitored business transactions
+- **Verify Agent is Running** - Open your browser and navigate to `http://localhost:3000/` (or the minikube service URL) to generate traffic, then check the AppDynamics Controller UI to confirm the application appears with monitored business transactions
 
 - **Generate Application Load** - Access the application multiple times to generate transactions: `curl http://localhost:3000/` and `curl http://localhost:3000/hello`
 
-- **Monitor in Controller** - Log into your AppDynamics Controller and verify that the application `aravind-nodejs-auto-ins` appears with automatic instrumentation enabled
+- **Monitor in Controller** - Log into your AppDynamics Controller and verify that the application `nodejs-auto-ins` (as configured by `defaultAppName` in `cluster-agent.yaml`) appears with automatic instrumentation enabled
 
-- **Clean Up Resources** - Run `make clean` to delete the namespaces and all associated resources when finished
+- **Clean Up Resources** - Run `make clean` to delete the `dev` and `appdynamics` namespaces and all associated resources when finished
 
 ## Official Documentation
 

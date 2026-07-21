@@ -68,8 +68,6 @@ create-app-secret:
 # -------- Deploy App --------
 .PHONY: deploy-app
 deploy-app: create-app-secret
-	kubectl create cm  shim-js-config --from-file=./shim.js -n $(APPD_NAMESPACE) || true
-	kubectl create -f k8s/appd-nodejs-config.yaml -n $(APP_NAMESPACE) || true
 	kubectl apply -f k8s/app.yaml -n $(APP_NAMESPACE)
 
 # -------- Logs --------

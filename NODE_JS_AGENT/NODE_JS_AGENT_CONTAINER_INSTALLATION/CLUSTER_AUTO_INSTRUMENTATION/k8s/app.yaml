@@ -25,9 +25,6 @@ spec:
               secretKeyRef:
                 key: access-key
                 name: appd-agent-secret
-        envFrom:
-          - configMapRef:
-              name: appd-nodejs-config  
 
 ---
 apiVersion: v1
