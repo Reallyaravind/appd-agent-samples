@@ -13,7 +13,7 @@ The structure of this repository aligns with the latest [**AppDynamics official 
 
 ## 🛠 Contribution Guidelines
 
-We welcome contributions! To maintain consistency across the repository, please ensure your pull requests follow the standardized [template](template.md) format outlined.
+Contributions are welcome! To keep the repository consistent, please make sure your pull requests include a readme that adheres to the standardized [template](template.md) format.
 
 ---
 
