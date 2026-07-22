@@ -49,7 +49,7 @@ void generate_bt_load_infinite(int thread_id) {
             appd_bt_add_error(btHandle1,
                             APPD_LEVEL_ERROR,
                             "Simulated continuous high-load error",
-                            1); // 1 marks this transaction execution as a failure
+                            1); // 1 marks this Business transaction as a Error
         }
 
         appd_bt_end(btHandle1);
